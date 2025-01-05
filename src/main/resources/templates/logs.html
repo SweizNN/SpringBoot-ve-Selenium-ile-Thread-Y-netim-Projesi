@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Log Paneli</title>
+</head>
+<body>
+<h1>Gerçek Zamanlı Log Paneli</h1>
+<table border="1">
+  <thead>
+  <tr>
+    <th>Log ID</th>
+    <th>Müşteri ID</th>
+    <th>Müşteri Türü</th>
+    <th>Ürün Adı</th>
+    <th>Miktar</th>
+    <th>Log Türü</th>
+    <th>Sonuç</th>
+    <th>İşlem Zamanı</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="log : ${logs}">
+    <td th:text="${log.logId}"></td>
+    <td th:text="${log.customerID}"></td>
+    <td th:text="${log.customerType}"></td>
+    <td th:text="${log.productName}"></td>
+    <td th:text="${log.miktar}"></td>
+    <td th:text="${log.logType}"></td>
+    <td th:text="${log.logDetails}"></td>
+    <td th:text="${log.logDate}"></td>
+  </tr>
+  </tbody>
+</table>
+<script>
+  setInterval(function () {
+    fetch('/logs').then(response => response.text()).then(html => {
+      document.body.innerHTML = html;
+    });
+  }, 5000); // Her 5 saniyede bir güncelle
+</script>
+
+
+</body>
+</html>
+
+

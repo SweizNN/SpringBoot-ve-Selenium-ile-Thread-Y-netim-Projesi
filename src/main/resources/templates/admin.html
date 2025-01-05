@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">Admin Panel</h1>
+
+    <!-- Ürün Ekle Butonu -->
+    <div class="text-center mt-4">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#urunEkleModal">Ürün Ekle</button>
+        <div class="text-center mt-4">
+            <button class="btn btn-warning" onclick="window.location.href='/productStock'">Stok Durumu</button>
+        </div>
+        <!-- Log Görüntüle Butonu -->
+        <div class="text-center mt-4">
+            <button class="btn btn-info" onclick="window.location.href='/logs'">Logları Görüntüle</button>
+        </div>
+        <div class="text-center mt-4">
+            <form action="/sistemibaslat" method="post">
+                <button type="submit" class="btn btn-success">Sistemi Başlat</button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Ürün Tablosu -->
+    <div class="mt-5">
+        <h2 class="text-center">Kayıtlı Ürünler</h2>
+        <table class="table table-striped text-center">
+            <thead>
+            <tr>
+                <th>ProductID</th>
+                <th>ProductName</th>
+                <th>Stock</th>
+                <th>Price (TL)</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${productsList}">
+                <td th:text="${product.productId}"></td>
+                <td th:text="${product.productName}"></td>
+                <td th:text="${product.stock}"></td>
+                <td th:text="${product.price}"></td>
+                <td>
+                    <!-- Sil Butonu -->
+                    <form th:action="@{/urunSil/{id}(id=${product.productId})}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Sil</button>
+                    </form>
+                    <!-- Güncelle Butonu -->
+                    <button class="btn btn-primary btn-sm"
+                            th:data-id="${product.productId}"
+                            th:data-name="${product.productName}"
+                            th:data-stock="${product.stock}"
+                            th:data-price="${product.price}"
+                            onclick="fillUpdateForm(this)">
+                        Güncelle
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Ürün Güncelleme Modal -->
+        <div th:each="product : ${productsList}">
+            <div id="updateModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000;">
+                <form th:action="@{/urunGuncelle/{id}(id=${product.productId})}" method="post">
+                    <h3>Etkinliği Güncelle</h3>
+                    <label for="ProductName">Product Name:</label><br>
+                    <input type="text" id="updateProductName" name="ProductName" th:value="${product.productName}" required><br><br>
+                    <label for="Stock">Product Stock:</label><br>
+                    <input type="number" id="updateStock" name="Stock" th:value="${product.stock}" required><br><br>
+                    <label for="ProductPrice">Product Price:</label><br>
+                    <input type="number" id="updateProductPrice" name="ProductPrice" th:value="${product.price}" required><br><br>
+                    <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px;">Güncelle</button>
+                    <button type="button" onclick="closeModal()" style="background-color: #ff5c5c; color: white; padding: 10px 20px; border: none; border-radius: 5px;">İptal</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="mt-5">
+        <h2 class="text-center">Onaylanmamış Siparişler</h2>
+        <table class="table table-striped text-center">
+            <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer ID</th>
+                <th>Product ID</th>
+                <th>Quantity</th>
+                <th>Total Price (TL)</th>
+                <th>Order Date</th>
+                <th>Order Status</th>
+                <th>Actions</th> <!-- Yeni Sütun -->
+            </tr>
+            </thead>
+            <tbody>
+            <div class="text-center mt-4">
+                <form action="/tumSiparisleriOnayla" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-success">Tümünü Onayla</button>
+                </form>
+            </div>
+            <tr th:each="order : ${unapprovedOrders}">
+                <!-- Onayla Butonu -->
+                <td th:text="${order.orderId}"></td>
+                <td th:text="${order.customerID}"></td>
+                <td th:text="${order.productID}"></td>
+                <td th:text="${order.quantity}"></td>
+                <td th:text="${order.totalPrice}"></td>
+                <td th:text="${order.orderDate}"></td>
+                <td th:text="${order.orderStatus}"></td>
+                    <td>
+                        <!-- Sil Butonu -->
+                        <form th:action="@{/onaylanmamisEtkinlikSil/{id}(id=${order.orderId})}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Sil</button>
+                        </form>
+                    </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- Ürün Ekle Modal -->
+    <div class="modal fade" id="urunEkleModal" tabindex="-1" aria-labelledby="urunEkleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="urunEkleModalLabel">Ürün Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/urunEkle" method="post">
+                        <div class="mb-3">
+                            <label for="ProductName" class="form-label">Ürün Adı:</label>
+                            <input type="text" class="form-control" id="ProductName" name="ProductName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Stock" class="form-label">Stok:</label>
+                            <input type="number" class="form-control" id="Stock" name="Stock" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ProductPrice" class="form-label">Ürün Fiyatı:</label>
+                            <input type="number" step="0.01" class="form-control" id="ProductPrice" name="ProductPrice" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Ürün Ekle</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function fillUpdateForm(button) {
+        const productId = button.getAttribute('data-id');
+        const productName = button.getAttribute('data-name');
+        const stock = button.getAttribute('data-stock');
+        const price = button.getAttribute('data-price');
+        document.getElementById('updateProductName').value = productName;
+        document.getElementById('updateStock').value = stock;
+        document.getElementById('updateProductPrice').value = price;
+        const updateForm = document.querySelector('#updateModal form');
+        updateForm.action = `/urunGuncelle/${productId}`;
+        document.getElementById('updateModal').style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById('updateModal').style.display = 'none';
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
